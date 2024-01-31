@@ -20,6 +20,7 @@ export class WebpageController {
   })
   @Get('')
   get(@Query('query') query: string) {
+    query = query.toLowerCase();
     return this.webpageService.fetchTopThree(query);
   }
 }
