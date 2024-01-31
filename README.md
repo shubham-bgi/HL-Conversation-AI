@@ -2,11 +2,11 @@
 It crawls data from a provided web URL, vectorizes the crawled data, after which you can submit queries to retrieve and visualize relevant information.
 
 # Requirements
-* Docker - https://www.docker.com/products/docker-desktop/
-* node v20 - https://nodejs.org/en/download
+* [Docker](https://www.docker.com/products/docker-desktop/)
+* [node v20](https://nodejs.org/en/download)
 
 # Setup
-1. Start milvus server acess Milvus - http://localhost:8000/
+1. Start milvus server, [GUI](http://localhost:8000/)
 ```bash
 docker compose -f ./high_level_BE/docker-compose.yml up
 ```
@@ -14,7 +14,7 @@ docker compose -f ./high_level_BE/docker-compose.yml up
 ```bash
 cd high_level_BE && npm run setup 
 ```
-3. Start BE
+3. Start BE,  [Swagger link](http://localhost:3100/webpage-api/api)
 ```bash
 npm run start 
 ```
@@ -26,11 +26,12 @@ cd high_level_FE && npm i
 ```bash
 npm run serve
 ```
+I have committed env file for easy setup.
 
 # Project Structure BE
 Contains a nest application that serves the BE application. Source folder contains
-* migrations - Migrations is one time inital setup to set our collection.
-* modules - Have three modules webpage, milvus, embedding.
+* migrations - Migrations contains files to set our collection in DB, it is a one time setup.
+* Modules - Three modules:
 * Webpage Module - Crawls and queries webpages. 
 * Milvus Module - Stores and retire data from milvus.
 * Embedding Module - Reponsible to fetch embeddings.
@@ -54,3 +55,22 @@ curl -X 'GET' \
   'http://localhost:3100/webpage-api/webpage?query=What%20is%20node%3F' \
   -H 'accept: */*'
 ```
+
+# Why milvus DB?
+Milvus is open source vector DB. It is horizontaly scalable and can an handle massive scale vector data.
+It is popular and go to choice among top companies. It also provide GUI interface Attu.
+
+# DB Design
+Webpage Collection, contain following fields
+* id - uuid string to uniquly identify each row
+* link - string that contains the url of the webpage data was crawled from.
+* text - A text chunk from the webpage on which we formed the vector.
+* vector - This is the vector of the text chunk
+It has idx_default index on vector field for quick retrieval of data.
+
+# Why Hugging face for embeddings?
+Hugging face provides benchmark on top embedding models world wide. It is free to use and you can also experiment between different models. Hugging face env variables.
+* HF_ACCESS_TOKEN - hugging face access token, you can [create access token for free](https://huggingface.co/settings/tokens)
+* USE_HF - set to 'true' to use hugging face, set it to 'false' and it will start using tensorflow setence transformer, but might need to change collection vector size to 512.
+* HF_MODEL - Model of your choice, please make sure it is a sentence transformer model example vaue "BAAI/bge-large-en-v1.5"
+
