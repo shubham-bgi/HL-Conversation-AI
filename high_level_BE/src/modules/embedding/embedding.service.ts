@@ -9,7 +9,7 @@ const TAG = 'EMBEDDINGS_SERVICE';
 @Injectable()
 export class EmbeddingService {
   constructor(private readonly configService: ConfigService) {}
-  private hf = new HfInference(this.configService.get('HF_ACCESS_TOKEN'));
+  private hf = new HfInference(this.configService.get('HF_ACCESS_TOKEN') || '');
   private async loadEmbeddingModel() {
     const model = await use.load();
     return model;
