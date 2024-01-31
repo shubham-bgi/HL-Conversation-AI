@@ -6,21 +6,20 @@ It crawls data from a provided web URL, vectorizes the crawled data, after which
 * node v20 - https://nodejs.org/en/download
 
 # Setup
+1. Start milvus server acess Milvus - http://localhost:8000/
 ```bash
-# Start milvus server
-# Acess Milvus - http://localhost:8000/
 docker compose -f ./high_level_BE/docker-compose.yml up
 ```
+2. New terminal - Setup BE
 ```bash
-# New terminal - Start BE
 cd high_level_BE && npm run setup 
 ```
+3. Same terminal - Start BE
 ```bash
-# Start BE
 npm run start 
 ```
+4. New terminal - Setup FE
 ```bash
-# New terminal - Start FE
 $ cd high_level_FE && npm i
 ```
 ```bash
