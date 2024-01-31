@@ -1,14 +1,19 @@
 # Conversation AI
 It crawls data from a provided web URL, vectorizes the crawled data, after which you can submit queries to retrieve and visualize relevant information.
 
+# Live Application (Might be slow)
+* FE - https://hl-conversation-ai-hytr.vercel.app/
+* BE - https://convo-ai-udga.onrender.com/webpage-api/api (Use '%iP0T04=U3Ku' for pass in POST request)
+
 # Requirements
 * [Docker](https://www.docker.com/products/docker-desktop/)
 * [node v20](https://nodejs.org/en/download)
-* Chrome Browser
+* [Chrome](https://www.google.com/intl/en_in/chrome/)
 
 # Setup
 * Setup Video - https://www.youtube.com/watch?v=cCJLJWvn2iE
-1. Start milvus server, after starting can use [GUI](http://localhost:8000/)
+1. Start milvus server, after starting you can use [GUI](http://localhost:8000/)
+Step can be skipped if using Cloud MILVUS, [switch milvus host to cloud](high_level_BE/.env)
 ```bash
 docker compose -f ./high_level_BE/docker-compose.yml up
 ```
@@ -73,7 +78,7 @@ It has idx_default index on vector field for quick retrieval of data.
 
 # Why Hugging face for embeddings?
 Hugging face provides benchmark on top embedding models world wide. It is free to use and you can also experiment between different models. Hugging face env variables.
-* HF_ACCESS_TOKEN - hugging face access token, you can [create access token for free](https://huggingface.co/settings/tokens)
-* USE_HF - set to 'true' to use hugging face, set it to 'false' and it will start using tensorflow setence transformer, but might need to change collection vector size to 512.
-* HF_MODEL - Model of your choice, please make sure it is a sentence transformer model example vaue "BAAI/bge-large-en-v1.5"
+* HF_ACCESS_TOKEN - hugging face access token, you can [create your access token for free](https://huggingface.co/settings/tokens)
+* USE_HF - set to 'true' to use hugging face, set it to 'false' and it will start using tensorflow setence transformer, but will need to change collection vector size to 512.
+* HF_MODEL - [Hugging face Model](https://huggingface.co/models?search=sentence-transformers) of your choice,  make sure it is a sentence transformer model. Also set collection vector size similar to this. Example value "BAAI/bge-large-en-v1.5"
 
