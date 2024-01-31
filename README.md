@@ -4,6 +4,7 @@ It crawls data from a provided web URL, vectorizes the crawled data, after which
 # Requirements
 * [Docker](https://www.docker.com/products/docker-desktop/)
 * [node v20](https://nodejs.org/en/download)
+* Chrome Browser
 
 # Setup
 * Setup Video - https://www.youtube.com/watch?v=cCJLJWvn2iE
