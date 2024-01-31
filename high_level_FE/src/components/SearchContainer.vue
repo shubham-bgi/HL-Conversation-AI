@@ -4,7 +4,8 @@
   </div>
   <div class="search-container">
     <input
-      @keyup.enter="$emit('search')"
+      v-model="searchQuery"
+      @keyup.enter="onEnter"
       type="text"
       placeholder="Enter your search query"
     />
@@ -12,7 +13,19 @@
 </template>
 
 <script>
+import { ref } from "vue";
 export default {
-  props: ["searchQuery"],
+  name: "SearchContainer",
+  emits: ["search"],
+  setup(props, context) {
+    const searchQuery = ref("");
+    function onEnter() {
+      context.emit("search", searchQuery.value);
+    }
+    return {
+      onEnter,
+      searchQuery,
+    };
+  },
 };
 </script>

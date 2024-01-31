@@ -1,5 +1,5 @@
 <script setup>
-  import SearchPage from './components/SearchPage.vue';
+import SearchPage from "./components/SearchPage.vue";
 </script>
 
 <template>
