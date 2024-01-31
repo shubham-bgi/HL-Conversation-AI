@@ -11,11 +11,11 @@ It crawls data from a provided web URL, vectorizes the crawled data, after which
 # Acess Milvus - http://localhost:8000/
 docker compose -f ./high_level_BE/docker-compose.yml up
 
-# Start BE
+# New terminal - Start BE
 cd high_level_BE && npm run setup 
 npm run start 
 
-# Start FE
+# New terminal - Start FE
 $ cd high_level_FE && npm i
 $ npm run serve
 ```
@@ -24,8 +24,8 @@ $ npm run serve
 Contains a nest application that serves the BE application. Source folder contains
 * migrations - Migrations is one time inital setup to set our collection.
 * modules - Have three modules webpage, milvus, embedding.
- 1. Webpage Module - Crawls and queries webpages.
- 2. Milvus Module - Stores and retire data from milvus.
- 3. Embedding Module - Reponsible to fetch embeddings.
+ - Webpage Module - Crawls and queries webpages. 
+ - Milvus Module - Stores and retire data from milvus.
+ - Embedding Module - Reponsible to fetch embeddings.
 
 # Project Structure high_level_FE
