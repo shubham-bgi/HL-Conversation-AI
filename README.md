@@ -14,7 +14,7 @@ docker compose -f ./high_level_BE/docker-compose.yml up
 ```bash
 cd high_level_BE && npm run setup 
 ```
-3. Same terminal - Start BE
+3. Start BE
 ```bash
 npm run start 
 ```
@@ -22,8 +22,8 @@ npm run start
 ```bash
 $ cd high_level_FE && npm i
 ```
+5. Start FE
 ```bash
-# Start FE
 $ npm run serve
 ```
 
