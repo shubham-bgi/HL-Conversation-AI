@@ -2,6 +2,7 @@
 It crawls data from a provided web URL, vectorizes the crawled data, after which you can submit queries to retrieve and visualize relevant information.
 
 # Requirements
+* <a href="https://www.docker.com/products/docker-desktop/" target="_blank">Docker</a>
 * [Docker](https://www.docker.com/products/docker-desktop/){:target="_blank"}
 * [node v20](https://nodejs.org/en/download)
 
