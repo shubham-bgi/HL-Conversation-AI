@@ -10,13 +10,21 @@ It crawls data from a provided web URL, vectorizes the crawled data, after which
 # Start milvus server
 # Acess Milvus - http://localhost:8000/
 docker compose -f ./high_level_BE/docker-compose.yml up
-
+```
+```bash
 # New terminal - Start BE
 cd high_level_BE && npm run setup 
+```
+```bash
+# Start BE
 npm run start 
-
+```
+```bash
 # New terminal - Start FE
 $ cd high_level_FE && npm i
+```
+```bash
+# Start FE
 $ npm run serve
 ```
 
