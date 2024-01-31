@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { WebpageDTO } from './webpage.dto';
 import puppeteer, { Browser } from 'puppeteer';
 import { JSDOM } from 'jsdom';
@@ -20,6 +24,12 @@ export class WebpageService {
   ) {}
 
   crawl(webpageDto: WebpageDTO) {
+    if (
+      this.configService.get('CHECK_PASS') == 'true' &&
+      webpageDto.pass != this.configService.get('PASS')
+    ) {
+      throw new UnauthorizedException();
+    }
     console.log(TAG, 'Starting crawl', webpageDto.url);
     this.crawlPage(webpageDto.url, webpageDto.url, {}, true);
     return `Strated crawling ${webpageDto.url}`;
