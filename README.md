@@ -20,11 +20,11 @@ npm run start
 ```
 4. New terminal - Setup FE
 ```bash
-$ cd high_level_FE && npm i
+cd high_level_FE && npm i
 ```
 5. Start FE
 ```bash
-$ npm run serve
+npm run serve
 ```
 
 # Project Structure high_level_BE
