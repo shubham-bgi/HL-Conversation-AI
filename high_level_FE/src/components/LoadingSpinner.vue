@@ -5,7 +5,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 .loading-spinner-overlay {
   position: fixed;
   top: 0;

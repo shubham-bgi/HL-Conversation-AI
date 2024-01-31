@@ -35,7 +35,7 @@ npm run serve
 I have committed env file for easy setup.
 
 # Project Structure BE
-Contains a nest application that serves the BE application. Source folder contains
+Contains a NestJs application. Source folder contains:
 * migrations - Migrations contains files to set our collection in DB, it is a one time setup.
 * Modules - Three modules:
 * Webpage Module - Crawls and queries webpages. 
@@ -43,6 +43,10 @@ Contains a nest application that serves the BE application. Source folder contai
 * Embedding Module - Reponsible to fetch embeddings.
 
 # Project Structure FE
+Contains a Vue application. Source Folder contains:
+* Assets - Contains static assets for the site
+* Components - Contains all Vue components. Each component is a seperate file. SearchPage.vue component is the main component using the others.
+* Styles - Contains global or shared styles. Single global.css serve the whole project.
 
 # API Design
 * POST Webpage API - Accepts a body that have url field. Starts crawling on that webpage asynchronously.
