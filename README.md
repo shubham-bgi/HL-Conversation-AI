@@ -7,7 +7,7 @@ It crawls data from a provided web URL, vectorizes the crawled data, after which
 
 # Setup
 * Setup Video - https://www.youtube.com/watch?v=cCJLJWvn2iE
-1. Start milvus server, [GUI](http://localhost:8000/)
+1. Start milvus server, then can be usign [GUI](http://localhost:8000/)
 ```bash
 docker compose -f ./high_level_BE/docker-compose.yml up
 ```
