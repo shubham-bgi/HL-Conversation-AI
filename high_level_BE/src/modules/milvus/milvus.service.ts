@@ -8,9 +8,7 @@ const TAG = 'MILVUS_SERVICE';
 export class MilvusService {
   private milvusClient = new MilvusClient({
     address: this.configService.get('MILVUS_HOST'),
-    ssl: false,
-    username: this.configService.get('MILVUS_USERNAME'),
-    password: this.configService.get('MILVUS_PASSWORD'),
+    token: process.env.MILVUS_TOKEN,
   });
   private collectionName = this.configService.get('MILVUS_COLLECTION_NAME');
   constructor(private readonly configService: ConfigService) {}

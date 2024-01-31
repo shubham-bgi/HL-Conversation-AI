@@ -3,9 +3,7 @@ import { config } from 'dotenv';
 config();
 const milvusClient = new MilvusClient({
   address: process.env.MILVUS_HOST,
-  ssl: false,
-  username: process.env.MILVUS_USERNAME,
-  password: process.env.PASSWORD,
+  token: process.env.MILVUS_TOKEN,
 });
 init();
 async function init() {
