@@ -80,7 +80,7 @@ Webpage Collection, contain following fields
 index added on vector field for quick retrieval of data.
 
 # Why Hugging face for embeddings?
-Hugging face provides benchmark on top embedding models world wide. It is free to use and you can also experiment between different models. Hugging face env variables, you don't need to set already in [env](high_level_BE/.env).
+Hugging face provides benchmark on top embedding models world wide. It is free to use and you can also experiment between different models. Hugging face env variables, you don't need to set already there in [env](high_level_BE/.env).
 * HF_ACCESS_TOKEN - hugging face access token, [create your access token for free](https://huggingface.co/settings/tokens)
 * USE_HF - If 'true' [embedding-service](high_level_BE/src/modules/embedding/embedding.service.ts) uses hugging face else it uses tensorflow setence transformer.
 * HF_MODEL - [Hugging face Model](https://huggingface.co/models?search=sentence-transformers) of choice, need to be a sentence transformer. If changed, match collection's vector field size to the model dimensions.
