@@ -47,7 +47,8 @@ curl -X 'POST' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
-  "url": "https://en.wikipedia.org/wiki/Node.js"
+  "url": "https://en.wikipedia.org/wiki/Node.js",
+  "pass": "%iP0T04=U3Ku"
 }'
 ```
 * GET Webpage API - Queries relavent webpages on the string provided in query parameter.
