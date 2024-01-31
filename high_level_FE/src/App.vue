@@ -63,7 +63,7 @@ export default {
       try {
         this.loading = true;
         const res = await axios.get(
-          `${process.env.VUE_APP_WEBPAGE_API}?queryString=${this.searchQuery}`
+          `${process.env.VUE_APP_WEBPAGE_API}?query=${this.searchQuery}`
         );
         if (res.data.length) {
           this.searchResults = res.data;
