@@ -14,12 +14,12 @@ export class WebpageController {
   }
 
   @ApiQuery({
-    name: 'queryString',
+    name: 'query',
     example: 'What is node?',
     required: true,
   })
   @Get('')
-  get(@Query('queryString') queryString: string) {
-    return this.webpageService.fetchTopThree(queryString);
+  get(@Query('query') query: string) {
+    return this.webpageService.fetchTopThree(query);
   }
 }

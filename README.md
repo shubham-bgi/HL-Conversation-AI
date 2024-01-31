@@ -37,4 +37,20 @@ Contains a nest application that serves the BE application. Source folder contai
 
 # Project Structure FE
 
-# Api design
+# API Design
+* POST Webpage API - Accepts a body that have url field to on which application crawl data on.
+```bash
+curl -X 'POST' \
+  'http://localhost:3100/webpage-api/webpage' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "url": "https://en.wikipedia.org/wiki/Node.js"
+}'
+```
+* GET Webpage API - Queries relavent webpages on the string provided in query parameter.
+```bash
+curl -X 'GET' \
+  'http://localhost:3100/webpage-api/webpage?query=What%20is%20node%3F' \
+  -H 'accept: */*'
+```
