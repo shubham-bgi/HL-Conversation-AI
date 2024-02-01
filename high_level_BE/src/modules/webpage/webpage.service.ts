@@ -1,10 +1,11 @@
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { WebpageDTO } from './webpage.dto';
-import puppeteer, { Browser } from 'puppeteer';
+import puppeteer from 'puppeteer';
 import { JSDOM } from 'jsdom';
 import * as createDOMPurify from 'dompurify';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
@@ -12,20 +13,32 @@ import { ConfigService } from '@nestjs/config';
 import { MilvusService } from '../milvus/milvus.service';
 import { EmbeddingService } from '../embedding/embedding.service';
 import { HttpService } from '@nestjs/axios';
+import { InjectQueue, Process, Processor } from '@nestjs/bull';
+import { Job, Queue } from 'bull';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 const TAG = 'WEBPAGE_SERVICE';
-
+export const WEBPAGE_QUEUE = 'WEBPAGE_QUEUE';
+interface Item {
+  currentURL: string;
+  baseURL: string;
+}
+@Processor(WEBPAGE_QUEUE)
 @Injectable()
 export class WebpageService {
-  private browser: Browser;
   private DOMPurify = createDOMPurify(new JSDOM('').window);
   constructor(
     private readonly configService: ConfigService,
     private readonly milvusService: MilvusService,
     private readonly embeddingService: EmbeddingService,
     private readonly httpService: HttpService,
+    @InjectQueue(WEBPAGE_QUEUE)
+    private readonly webpageQueue: Queue<Item>,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
-  crawl(webpageDto: WebpageDTO) {
+  async startCrawl(webpageDto: WebpageDTO) {
     if (
       this.configService.get('CHECK_PASS') == 'true' &&
       webpageDto.pass != this.configService.get('PASS')
@@ -33,26 +46,46 @@ export class WebpageService {
       throw new UnauthorizedException();
     }
     console.log(TAG, 'Starting crawl', webpageDto.url);
-    this.crawlPage(webpageDto.url, webpageDto.url, {}, true);
+    const item = {
+      baseURL: webpageDto.url,
+      currentURL: webpageDto.url,
+    };
+    try {
+      await this.enQueuePage(item, true);
+    } catch (err) {
+      throw new InternalServerErrorException();
+    }
     return `Strated crawling ${webpageDto.url}`;
   }
 
-  private async crawlPage(
-    baseURL: string,
-    currentURL: string,
-    pages = {},
-    isParent = false,
-  ) {
+  async enQueuePage(item: Item, getError = false) {
+    const bullJobOptions = {
+      removeOnComplete: true,
+      removeOnFail: 100,
+    };
     try {
-      if (isParent) this.browser = await puppeteer.launch({ headless: 'new' });
+      console.log(`Enqueuing`, item);
+      await this.webpageQueue.add(item, bullJobOptions);
+    } catch (err) {
+      console.error('Failed to enqueue', item, 'due to', err);
+      if (getError) throw err;
+    }
+  }
+
+  @Process()
+  async crawlPage(job: Job<Item>) {
+    const { baseURL, currentURL } = job.data;
+    try {
       const baseURLObj = new URL(baseURL);
       const currentURLObj = new URL(currentURL);
 
       if (baseURLObj.hostname != currentURLObj.hostname) return;
 
       const normalizedCurrentURL = this.normalizeUrl(currentURL);
-      if (pages[normalizedCurrentURL]) return;
-      pages[normalizedCurrentURL] = true;
+      const redisKey = `proccessed.${normalizedCurrentURL}`;
+      const alreadyProcessed = await this.cacheManager.get(redisKey);
+      if (alreadyProcessed) return;
+      await this.cacheManager.set(redisKey, true);
 
       console.log(TAG, 'Actively crawiling', currentURL);
       const response = await this.httpService.axiosRef.head(currentURL);
@@ -67,8 +100,9 @@ export class WebpageService {
       await this.processAndSave(htmlBody, currentURLObj.href);
 
       const nextURLs = this.getURLsFromHTML(htmlBody, baseURLObj.origin);
+      console.log(`${currentURL}'s next urls count: ${nextURLs?.length}`);
       for (const nextURL of nextURLs) {
-        await this.crawlPage(baseURL, nextURL, pages);
+        await this.enQueuePage({ baseURL, currentURL: nextURL });
       }
     } catch (e) {
       console.error(
@@ -78,16 +112,12 @@ export class WebpageService {
         ', on page',
         currentURL,
       );
-    } finally {
-      if (isParent) {
-        await this.browser.close();
-        console.log(TAG, 'Completed crawling', baseURL);
-      }
     }
   }
 
   private async getHTMLBody(currentURL: string) {
-    const page = await this.browser.newPage();
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
     const response = await page.goto(currentURL, {
       waitUntil: this.configService.get('WAIT_UNTIL') || 'domcontentloaded',
     });
@@ -99,7 +129,7 @@ export class WebpageService {
       throw new Error(`Not a html response, content type ${contentType}`);
     }
     const content = await page.content();
-    await page.close();
+    await browser.close();
     return content;
   }
 

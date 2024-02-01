@@ -10,7 +10,7 @@ export class WebpageController {
 
   @Post('')
   crawl(@Body() webpage: WebpageDTO) {
-    return this.webpageService.crawl(webpage);
+    return this.webpageService.startCrawl(webpage);
   }
 
   @ApiQuery({
