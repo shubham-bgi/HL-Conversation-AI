@@ -11,6 +11,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { ConfigService } from '@nestjs/config';
 import { MilvusService } from '../milvus/milvus.service';
 import { EmbeddingService } from '../embedding/embedding.service';
+import { HttpService } from '@nestjs/axios';
 const TAG = 'WEBPAGE_SERVICE';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class WebpageService {
     private readonly configService: ConfigService,
     private readonly milvusService: MilvusService,
     private readonly embeddingService: EmbeddingService,
+    private readonly httpService: HttpService,
   ) {}
 
   crawl(webpageDto: WebpageDTO) {
@@ -53,6 +55,14 @@ export class WebpageService {
       pages[normalizedCurrentURL] = true;
 
       console.log(TAG, 'Actively crawiling', currentURL);
+      const response = await this.httpService.axiosRef.head(currentURL);
+      const contentType = response?.headers?.['content-type'];
+      if (
+        typeof contentType == 'string' &&
+        !contentType.includes('text/html')
+      ) {
+        throw new Error(`Not a html response, content type ${contentType}`);
+      }
       const htmlBody = await this.getHTMLBody(currentURL);
       await this.processAndSave(htmlBody, currentURLObj.href);
 

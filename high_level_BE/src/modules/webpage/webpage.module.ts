@@ -3,9 +3,10 @@ import { WebpageController } from './webpage.controller';
 import { WebpageService } from './webpage.service';
 import { MilvusModule } from '../milvus/milvus.module';
 import { EmbeddingModule } from '../embedding/embedding.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [MilvusModule, EmbeddingModule],
+  imports: [MilvusModule, EmbeddingModule, HttpModule],
   controllers: [WebpageController],
   providers: [WebpageService],
 })
