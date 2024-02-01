@@ -42,6 +42,7 @@ h1 {
 
 .item {
   width: 1000px;
+  word-wrap: break-word;
   margin: 0 auto 10px auto;
   padding: 10px 20px;
   color: white;
