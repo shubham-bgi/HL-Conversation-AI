@@ -12,7 +12,7 @@ It crawls data from a provided web URL, vectorizes the crawled data, after which
 
 # Setup
 * Setup Video - https://www.youtube.com/watch?v=cCJLJWvn2iE
-1. Start milvus server, after starting you can use [GUI](http://localhost:8000/), this step can be skipped if using Cloud MILVUS, [switch milvus host to cloud](high_level_BE/.env)
+1. Start milvus server, after starting you can use [GUI](http://localhost:8000/), this step can be skipped if using Cloud options, [switch to cloud](high_level_BE/.env)
 ```bash
 docker compose -f ./high_level_BE/docker-compose.yml up
 ```
