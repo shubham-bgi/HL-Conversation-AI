@@ -70,10 +70,6 @@ export class WebpageService {
       for (const nextURL of nextURLs) {
         await this.crawlPage(baseURL, nextURL, pages);
       }
-      if (isParent) {
-        await this.browser.close();
-        console.log(TAG, 'Completed crawling', baseURL);
-      }
     } catch (e) {
       console.error(
         TAG,
@@ -82,6 +78,11 @@ export class WebpageService {
         ', on page',
         currentURL,
       );
+    } finally {
+      if (isParent) {
+        await this.browser.close();
+        console.log(TAG, 'Completed crawling', baseURL);
+      }
     }
   }
 
