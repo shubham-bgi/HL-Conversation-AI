@@ -203,7 +203,8 @@ export class WebpageService {
   async fetchTopThree(query: string) {
     try {
       console.log(TAG, 'Got a query:', query);
-      const embedding = await this.embeddingService.getEmbeddings([query]);
+      const q = [query.toLowerCase()];
+      const embedding = await this.embeddingService.getEmbeddings(q);
       const response = await this.milvusService.vectorQuery(embedding[0]);
       console.info(
         TAG,
