@@ -115,6 +115,7 @@ export class WebpageService {
         ', on page',
         currentURL,
       );
+      console.error(typeof e == 'object' ? JSON.stringify(e) : e);
     }
   }
 
