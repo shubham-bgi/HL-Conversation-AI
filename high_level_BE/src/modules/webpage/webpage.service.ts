@@ -161,26 +161,43 @@ export class WebpageService {
   }
 
   private async processAndSave(htmlBody: string, currentURL: string) {
+    //remove all html tags
     let text = this.DOMPurify.sanitize(htmlBody, { ALLOWED_TAGS: [] });
-    if (this.configService.get('FULLY_CLEAN_TEXT') != 'false') {
-      text = text
-        .replace(/\s+/g, ' ')
-        .toLowerCase()
-        .replace(/([a-z0-9+._-]+@[a-z0-9+._-]+\.[a-z0-9+_-]+)/g, '')
-        .replace(
-          /(http|https|ftp|ssh):([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/g,
-          '',
-        );
-    }
+
+    //remove email and url
+    const clean = this.configService.get('FULLY_CLEAN_TEXT') != 'false';
+    text = clean ? this.removeURLsAndEmails(text) : text;
+
+    //split text into chunks
     const chunkSize = this.configService.get('CHUNK_SIZE') || 1000;
+    let chunks = await this.splitIntoChunks([text], +chunkSize);
+
+    //remove all white spaces
+    if (clean) chunks = chunks.map((chunk) => chunk.replace(/\s+/g, ' '));
+
+    //fetch embeddings
+    const chunksLowerCase = chunks.map((chunk) => chunk.toLowerCase());
+    const embeddings =
+      await this.embeddingService.getEmbeddings(chunksLowerCase);
+
+    //save
+    await this.milvusService.insertData(embeddings, chunks, currentURL);
+  }
+
+  removeURLsAndEmails(str: string) {
+    const URLRegEx =
+      /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi;
+    const emailRegEx = /([a-z0-9+._-]+@[a-z0-9+._-]+\.[a-z0-9+_-]+)/gi;
+    return str.replace(emailRegEx, '').replace(URLRegEx, '');
+  }
+
+  async splitIntoChunks(str: string[], chunkSize: number) {
     const splitter = new RecursiveCharacterTextSplitter({
       chunkSize,
       chunkOverlap: Math.floor(chunkSize / 10),
     });
-    const documents = await splitter.createDocuments([text]);
-    const textChunks = documents.map((x) => x.pageContent);
-    const embeddings = await this.embeddingService.getEmbeddings(textChunks);
-    await this.milvusService.insertData(embeddings, textChunks, currentURL);
+    const documents = await splitter.createDocuments(str);
+    return documents.map((x) => x.pageContent);
   }
 
   async fetchTopThree(query: string) {
