@@ -52,23 +52,35 @@ export class WebpageService {
     };
     try {
       await this.enQueuePage(item, true);
+      return `Strated crawling ${webpageDto.url}`;
     } catch (err) {
       throw new InternalServerErrorException();
     }
-    return `Strated crawling ${webpageDto.url}`;
   }
 
-  async enQueuePage(item: Item, getError = false) {
+  async enQueuePage(item: Item, throwError = false) {
     const bullJobOptions = {
       removeOnComplete: true,
       removeOnFail: 100,
     };
     try {
-      console.log(`Enqueuing`, item);
+      //Return if not the same host
+      const baseURLObj = new URL(item.baseURL);
+      const currentURLObj = new URL(item.currentURL);
+      if (baseURLObj.hostname != currentURLObj.hostname) return;
+
+      // Return if already proccessed
+      const normalizedCurrentURL = this.normalizeUrl(item.currentURL);
+      const redisKey = `proccessed.${normalizedCurrentURL}`;
+      const alreadyProcessed = await this.cacheManager.get(redisKey);
+      if (alreadyProcessed) return;
+      await this.cacheManager.set(redisKey, true);
+
+      console.log(TAG, `Enqueuing`, JSON.stringify(item));
       await this.webpageQueue.add(item, bullJobOptions);
     } catch (err) {
-      console.error('Failed to enqueue', item, 'due to', err);
-      if (getError) throw err;
+      console.error(TAG, 'Failed to enqueue', item, 'due to', err);
+      if (throwError) throw err;
     }
   }
 
@@ -78,15 +90,6 @@ export class WebpageService {
     try {
       const baseURLObj = new URL(baseURL);
       const currentURLObj = new URL(currentURL);
-
-      if (baseURLObj.hostname != currentURLObj.hostname) return;
-
-      const normalizedCurrentURL = this.normalizeUrl(currentURL);
-      const redisKey = `proccessed.${normalizedCurrentURL}`;
-      const alreadyProcessed = await this.cacheManager.get(redisKey);
-      if (alreadyProcessed) return;
-      await this.cacheManager.set(redisKey, true);
-
       console.log(TAG, 'Actively crawiling', currentURL);
       const response = await this.httpService.axiosRef.head(currentURL);
       const contentType = response?.headers?.['content-type'];
@@ -100,7 +103,7 @@ export class WebpageService {
       await this.processAndSave(htmlBody, currentURLObj.href);
 
       const nextURLs = this.getURLsFromHTML(htmlBody, baseURLObj.origin);
-      console.log(`${currentURL}'s next urls count: ${nextURLs?.length}`);
+      console.log(TAG, `${currentURL}'s next urls count: ${nextURLs?.length}`);
       for (const nextURL of nextURLs) {
         await this.enQueuePage({ baseURL, currentURL: nextURL });
       }
