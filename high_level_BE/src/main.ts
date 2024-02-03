@@ -8,7 +8,7 @@ async function bootstrap() {
   const globalPrefix = 'webpage-api';
 
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix(globalPrefix);
+  app.setGlobalPrefix(`/${globalPrefix}`);
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
 

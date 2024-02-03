@@ -5,6 +5,8 @@ import { MilvusModule } from '../milvus/milvus.module';
 import { EmbeddingModule } from '../embedding/embedding.module';
 import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bull';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { BullAdapter } from '@bull-board/api/bullAdapter';
 
 @Module({
   imports: [
@@ -13,6 +15,14 @@ import { BullModule } from '@nestjs/bull';
     HttpModule,
     BullModule.registerQueue({
       name: WEBPAGE_QUEUE,
+      defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: 100,
+      },
+    }),
+    BullBoardModule.forFeature({
+      name: WEBPAGE_QUEUE,
+      adapter: BullAdapter,
     }),
   ],
   controllers: [WebpageController],

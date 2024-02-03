@@ -59,10 +59,6 @@ export class WebpageService {
   }
 
   async enQueuePage(item: Item, throwError = false) {
-    const bullJobOptions = {
-      removeOnComplete: true,
-      removeOnFail: 100,
-    };
     try {
       //Return if not the same host
       const baseURLObj = new URL(item.baseURL);
@@ -77,7 +73,7 @@ export class WebpageService {
       await this.cacheManager.set(redisKey, true);
 
       console.log(TAG, `Enqueuing`, JSON.stringify(item));
-      await this.webpageQueue.add(item, bullJobOptions);
+      await this.webpageQueue.add(item);
     } catch (err) {
       console.error(TAG, 'Failed to enqueue', item, 'due to', err);
       if (throwError) throw err;
@@ -99,13 +95,17 @@ export class WebpageService {
       ) {
         throw new Error(`Not a html response, content type ${contentType}`);
       }
+      await job.progress(10);
       const htmlBody = await this.getHTMLBody(currentURL);
-      await this.processAndSave(htmlBody, currentURLObj.href);
+      await this.processAndSave(htmlBody, currentURLObj.href, job);
+      await job.progress(80);
 
       const nextURLs = this.getURLsFromHTML(htmlBody, baseURLObj.origin);
       console.log(TAG, `${currentURL}'s next urls count: ${nextURLs?.length}`);
-      for (const nextURL of nextURLs) {
-        await this.enQueuePage({ baseURL, currentURL: nextURL });
+      for (let i = 0; i < nextURLs.length; i++) {
+        const percentDone = Math.floor((i / nextURLs.length) * 20);
+        await job.progress(80 + percentDone);
+        await this.enQueuePage({ baseURL, currentURL: nextURLs[i] });
       }
     } catch (e) {
       console.error(
@@ -160,8 +160,9 @@ export class WebpageService {
     return hostPath;
   }
 
-  private async processAndSave(htmlBody: string, currentURL: string) {
+  private async processAndSave(htmlBody: string, currentURL: string, job: Job) {
     //remove all html tags
+    await job.progress(20);
     let text = this.DOMPurify.sanitize(htmlBody, { ALLOWED_TAGS: [] });
 
     //remove email and url
@@ -169,6 +170,7 @@ export class WebpageService {
     text = clean ? this.removeURLsAndEmails(text) : text;
 
     //split text into chunks
+    await job.progress(25);
     const chunkSize = this.configService.get('CHUNK_SIZE') || 1000;
     let chunks = await this.splitIntoChunks([text], +chunkSize);
 
@@ -176,11 +178,13 @@ export class WebpageService {
     if (clean) chunks = chunks.map((chunk) => chunk.replace(/\s+/g, ' '));
 
     //fetch embeddings
+    await job.progress(30);
     const chunksLowerCase = chunks.map((chunk) => chunk.toLowerCase());
     const embeddings =
       await this.embeddingService.getEmbeddings(chunksLowerCase);
 
     //save
+    await job.progress(60);
     await this.milvusService.insertData(embeddings, chunks, currentURL);
   }
 
