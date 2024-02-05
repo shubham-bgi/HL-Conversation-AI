@@ -26,20 +26,20 @@ async function init() {
       {
         name: 'text',
         data_type: DataType.VarChar,
-        max_length: 1024,
+        max_length: 8192,
         description: 'Actual text',
       },
       {
         name: 'vector',
         description: 'vector of the text',
         data_type: DataType.FloatVector,
-        dim: 1024,
+        dim: +process.env.VECTOR_SIZE || 1024,
       },
     ],
   };
   await milvusClient.createCollection(params);
   await milvusClient.createIndex({
-    collection_name: 'webpage',
+    collection_name: process.env.MILVUS_COLLECTION_NAME,
     index_name: 'idx_default',
     field_name: 'vector',
     extra_params: {

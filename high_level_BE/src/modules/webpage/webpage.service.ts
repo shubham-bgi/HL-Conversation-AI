@@ -22,6 +22,7 @@ export const WEBPAGE_QUEUE = 'WEBPAGE_QUEUE';
 interface Item {
   currentURL: string;
   baseURL: string;
+  parentURL: string;
 }
 @Processor(WEBPAGE_QUEUE)
 @Injectable()
@@ -49,6 +50,7 @@ export class WebpageService {
     const item = {
       baseURL: webpageDto.url,
       currentURL: webpageDto.url,
+      parentURL: webpageDto.url,
     };
     try {
       await this.enQueuePage(item, true);
@@ -62,8 +64,10 @@ export class WebpageService {
     try {
       //Return if not the same host
       const baseURLObj = new URL(item.baseURL);
-      const currentURLObj = new URL(item.currentURL);
+      const currentURLObj = new URL(item.currentURL, item.parentURL);
       if (baseURLObj.hostname != currentURLObj.hostname) return;
+
+      item.currentURL = currentURLObj.href;
 
       // Return if already proccessed
       const normalizedCurrentURL = this.normalizeUrl(item.currentURL);
@@ -84,7 +88,6 @@ export class WebpageService {
   async crawlPage(job: Job<Item>) {
     const { baseURL, currentURL } = job.data;
     try {
-      const baseURLObj = new URL(baseURL);
       const currentURLObj = new URL(currentURL);
       console.log(TAG, 'Actively crawiling', currentURL);
       const response = await this.httpService.axiosRef.head(currentURL);
@@ -100,12 +103,16 @@ export class WebpageService {
       await this.processAndSave(htmlBody, currentURLObj.href, job);
       await job.progress(80);
 
-      const nextURLs = this.getURLsFromHTML(htmlBody, baseURLObj.origin);
+      const nextURLs = this.getURLsFromHTML(htmlBody);
       console.log(TAG, `${currentURL}'s next urls count: ${nextURLs?.length}`);
       for (let i = 0; i < nextURLs.length; i++) {
         const percentDone = Math.floor((i / nextURLs.length) * 20);
         await job.progress(80 + percentDone);
-        await this.enQueuePage({ baseURL, currentURL: nextURLs[i] });
+        await this.enQueuePage({
+          baseURL,
+          currentURL: nextURLs[i],
+          parentURL: currentURL,
+        });
       }
     } catch (e) {
       console.error(
@@ -137,16 +144,12 @@ export class WebpageService {
     return content;
   }
 
-  private getURLsFromHTML(htmlBody, baseURLOrigin) {
-    const urls = [];
+  private getURLsFromHTML(htmlBody) {
+    const urls: string[] = [];
     const dom = new JSDOM(htmlBody);
     const links = dom.window.document.querySelectorAll('a');
     links.forEach((link) => {
-      if (link.href[0] === '/') {
-        urls.push(baseURLOrigin + link.href);
-      } else {
-        urls.push(link.href);
-      }
+      urls.push(link.href);
     });
     return urls;
   }
@@ -169,13 +172,15 @@ export class WebpageService {
     const clean = this.configService.get('FULLY_CLEAN_TEXT') != 'false';
     text = clean ? this.removeURLsAndEmails(text) : text;
 
+    //remove all white spaces
+    text = clean ? text.replace(/\s+/g, ' ') : text;
+
+    if (!text.length) return;
+
     //split text into chunks
     await job.progress(25);
     const chunkSize = this.configService.get('CHUNK_SIZE') || 1000;
-    let chunks = await this.splitIntoChunks([text], +chunkSize);
-
-    //remove all white spaces
-    if (clean) chunks = chunks.map((chunk) => chunk.replace(/\s+/g, ' '));
+    const chunks = await this.splitIntoChunks([text], +chunkSize);
 
     //fetch embeddings
     await job.progress(30);
